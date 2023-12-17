@@ -26,6 +26,7 @@ findings :
 
 * I was force to create an exception for `/healthz`  path to avoid filling the database  of the cluster requests for the liveness and readinessprobes.
 
+* after testing application deployed on GKE I find out the IP getting saved was the one of GKE nodes hitting LB, I update chart to use `externalTrafficPolicy: Local` to fix it.
 
 ### example requests 
 

@@ -15,7 +15,6 @@ metadata:
 {{ include "application.tplvalues.render" ( dict "value" .Values.service.annotations  "context" $ ) | indent 4 }}
 {{- end }}
 spec:
-
   externalTrafficPolicy: Local
 {{- if .Values.service.type }}  
   type: "{{ .Values.service.type }}"
