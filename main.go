@@ -33,28 +33,13 @@ func getClientIP(c *gin.Context) string {
 func init() {
 	initializers.LoadEnvVariables()
 	initializers.ConnectToDB()
+	// used to delete table for testing
 	// migrator := initializers.DB.Migrator()
 	// migrator.DropTable(&models.Post{})
 	initializers.DB.AutoMigrate(&models.Post{})
 
 }
 
-func setup() {
-	// initializers.LoadEnvVariables()
-	// initializers.ConnectToDB()
-	migrator := initializers.DB.Migrator()
-	migrator.DropTable(&models.Post{})
-	// database.Connect()
-	// initializers.DB.AutoMigrate(&models.Post{})
-
-	// database.Database.AutoMigrate(&model.User{})
-	// database.Database.AutoMigrate(&model.Entry{})
-}
-
-// func teardown() {
-// migrator := initializers.DB.Migrator()
-// migrator.DropTable(&models.Post{})
-// }
 func main() {
 	r := gin.Default()
 	// handling any non existing route and saving IP
