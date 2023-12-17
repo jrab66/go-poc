@@ -1,0 +1,399 @@
+# -- Same as nameOverride but for the namespace.
+namespaceOverride: ""
+
+# -- Same as nameOverride but for the component.
+componentOverride: ""
+
+# -- Same as nameOverride but for the partOf.
+partOfOverride: ""
+
+##########################################################
+# Name of the application.
+##########################################################
+applicationName: "go-poc"
+
+# configMapGoPoc:
+#   enabled: true
+
+##########################################################
+# Deployment
+##########################################################
+deployment:
+
+  enabled: true
+  # By default deploymentStrategy is set to rollingUpdate with maxSurge of 25% and maxUnavailable of 25%
+  # You can change type to `Recreate` or can uncomment `rollingUpdate` specification and adjust them to your usage.
+  strategy:
+    type: RollingUpdate
+    # rollingUpdate:
+    #   maxSurge: 25%
+    #   maxUnavailable: 25%
+  
+  # Reload deployment if configMap/secret updates
+  reloadOnChange: true
+
+  # Select nodes to deploy which matches the following labels  
+  nodeSelector:
+    # cloud.google.com/gke-nodepool: default-pool  
+
+  # Init containers which runs before the app container
+  hostAliases:
+  # - ip: "127.0.0.1"
+  #   hostnames:
+  #   - "foo.local"
+  #   - "bar.local"
+  # - ip: "10.1.2.3"
+  #   hostnames:
+  #   - "foo.remote"
+  #   - "bar.remote"
+
+  # Init containers which runs before the app container
+  initContainers:
+#      init-contaner:
+#        image: busybox
+#        imagePullPolicy: IfNotPresent
+#        command: ['/bin/sh']
+
+  # Additional labels for Deployment
+  additionalLabels:
+    # key: value
+  
+  # Additional label added on pod which is used in Service's Label Selector
+  podLabels: 
+    # env: prod
+
+  # Annotations on deployments
+  annotations:
+
+  # Additional Pod Annotations added on pod created by this Deployment
+  additionalPodAnnotations:
+    # key: value
+  
+  # Annotations for fluentd Configurations
+  fluentdConfigAnnotations:
+    # fluentd:
+    #   regex: hello
+    #   timeFormat: world
+
+  # Replicas to be created
+  replicas: 
+
+  # Secrets used to pull image
+  imagePullSecrets: ""
+
+  # If want to mount Envs from configmap or secret
+  envFrom:
+#    production-cm:
+#      type: configmap
+#      nameSuffix: my-configmap
+#    logging-config:
+#      type: configmap
+#      nameSuffix: your-configmap
+   postgres-config:
+     type: secret
+     nameSuffix: postgres
+
+  # Environment variables to be passed to the app container
+  env:
+#    ENVIRONMENT:
+#       value: "dev"
+#    FREQUENCY:
+#       valueFrom:
+#          configMapKeyRef:
+#             name: config
+#             key: frequency
+  
+  # Volumes to be added to the pod
+  volumes:
+#     configmap-volume:
+#       configMap:
+#         name: '{{ template "application.name" . }}-configmap-nameSuffix'
+    # secret-volume:
+    #   secret:
+    #     secretName: go-poc-postgres
+#     persistent-volume-name:
+#       persistentVolumeClaim:
+#         claimName: claim-name
+
+  # Mount path for Volumes 
+  volumeMounts:
+    # volume-name:
+    #    mountPath: path
+    #    subPath: szy
+
+    # volume-name-2:
+    #    mountPath: path-2
+
+  # Taint tolerations for nodes
+  tolerations:
+    # - key: "dedicated"
+    #   operator: "Equal"
+    #   value: "app"
+    #   effect: "NoSchedule"
+
+  # Pod affinity and pod anti-affinity allow you to specify rules about how pods should be placed relative to other pods.
+  affinity:
+  #  nodeAffinity:
+  #    requiredDuringSchedulingIgnoredDuringExecution:
+  #      nodeSelectorTerms:
+  #      - matchExpressions:
+  #        - key: disktype
+  #          operator: In
+  #          values:
+  #          - ssd
+
+  # Topology spread constraints
+  topologySpreadConstraints:
+    # - maxSkew: 1
+    #   topologyKey: kubernetes.io/hostname
+    #   whenUnsatisfiable: ScheduleAnyway
+    #   labelSelector:
+    #     matchExpressions:
+    #     - key: disktype
+    #       operator: In
+    #       values:
+    #       - ssd
+    # - maxSkew: 1
+    #   topologyKey: topology.kubernetes.io/zone
+    #   whenUnsatisfiable: ScheduleAnyway
+    #   labelSelector:
+    #     matchExpressions:
+    #     - key: disktype
+    #       operator: In
+    #       values:
+    #       - ssd
+
+  # Number of ReplicaSet versions to retain
+  revisionHistoryLimit: 2
+
+  # Image of the app container
+  image: 
+    repository:  us-central1-docker.pkg.dev/deel-demo-408323/go-poc/go-poc #localhost:5001/go-poc 
+    tag: 'latest'
+    digest: '' # if set to a non empty value, digest takes precedence on the tag
+    pullPolicy: IfNotPresent
+  dnsConfig:
+    # options:
+    # - name: ndots
+    #   value: '1'
+  # Startup, Readiness and Liveness probes
+  startupProbe:
+    enabled: false
+    failureThreshold: 30
+    periodSeconds: 10
+    # Must specify either one of the following field when enabled
+    httpGet: {}
+    exec: {}
+    tcpSocket: {}
+
+  readinessProbe:
+    enabled: true
+    failureThreshold: 3
+    periodSeconds: 10
+    successThreshold: 1
+    timeoutSeconds: 1
+    initialDelaySeconds: 10
+    # Must specify either one of the following field when enabled
+    httpGet:
+      path: /healthz
+      port: 80
+    exec: {}
+    tcpSocket: {}
+
+  livenessProbe:
+    enabled: true
+    failureThreshold: 3
+    periodSeconds: 10
+    successThreshold: 1
+    timeoutSeconds: 1
+    initialDelaySeconds: 10
+    # Must specify either one of the following field when enabled
+    httpGet:
+      path: /healthz
+      port: 80
+    exec: {}
+    tcpSocket: {}
+
+  # Resources to be defined for pod
+  resources:
+    limits:
+      memory: 100Mi
+      cpu: 0.3
+    requests:
+      memory: 40Mi
+      cpu: 0.1
+
+
+  # Security Context for the pod
+  containerSecurityContext:
+    readOnlyRootFilesystem: false
+    runAsNonRoot: false
+  securityContext:
+    # fsGroup: 2000
+  
+  # Command for primary container
+  command: []
+
+  # Args for primary contaner
+  args: []
+
+  # List of ports for the primary container
+  ports:
+  #- containerPort: 8080
+  #  name: http
+  #  protocol: TCP
+  #- containerPort: 8778
+  #  name: jolokia
+  #  protocol: TCP
+  #- containerPort: 8443
+  #  name: https
+  #  protocol: TCP
+
+  # Networking using the host network
+  hostNetwork:
+
+  # Graceful termination timeout
+  terminationGracePeriodSeconds:
+
+##########################################################
+# Add Storage volumes to the pods
+##########################################################
+persistence:
+  enabled: false
+  mountPVC: false
+  mountPath: "/"
+  name: ""
+  accessMode: ReadWriteOnce
+  ## If defined, storageClass: <storageClass>
+  ## If set to "-", storageClass: "", which disables dynamic provisioning
+  ## If undefined (the default) or set to null, no storageClass spec is
+  ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+  ##   GKE, AWS & OpenStack)
+  ##
+  storageClass: "-"
+  additionalLabels:
+    # key: "value"
+  annotations:
+  #  "helm.sh/resource-policy": keep
+  storageSize: 8Gi
+  volumeMode: ""
+  volumeName: ""
+
+
+##########################################################
+# Service object for servicing pods
+##########################################################
+service:
+  enabled: true
+  additionalLabels:
+    # expose: "true"
+
+  annotations:
+    # cloud.google.com/neg: '{"ingress": true}'
+    # cloud.google.com/backend-config: '{"ports": {"80":"my-backendconfig"}}'
+#     config.xposer.stakater.com/Domain: stakater.com
+#     config.xposer.stakater.com/IngressNameTemplate: '{{ "{{.Service}}-{{.Namespace}}" }}'
+#     config.xposer.stakater.com/IngressURLPath: /
+#     config.xposer.stakater.com/IngressURLTemplate: '{{ "{{.Service}}.{{.Namespace}}.{{.Domain}}" }}'
+#     service.alpha.openshift.io/serving-cert-secret-name: |
+#       '{{ template "application.name" . }}-tls'
+#     xposer.stakater.com/annotations: |-
+#       kubernetes.io/ingress.class: external-ingress
+#       ingress.kubernetes.io/rewrite-target: /
+#       ingress.kubernetes.io/force-ssl-redirect: true
+  
+  ports:
+    - port: 80
+      name: http
+      protocol: TCP
+      targetPort: 80
+# expose as loadbalancer with IP without backendconfig on GKE      
+  type: LoadBalancer
+
+  # Set to 'None' will make this service headless 
+  clusterIP:
+
+##########################################################
+# Ingress object for exposing services
+##########################################################
+ingress:
+  enabled: false
+  
+  # Name of the ingress class
+  ingressClassName: ''
+
+  # Port of the service that serves pods
+  servicePort: 80
+
+  #Set pathType: default is ImplementationSpecific; Options: Exact, Prefix
+  pathType: ImplementationSpecific 
+  
+  # List of host addresses to be exposed by this Ingress
+  hosts:
+    - host: go-poc.deel
+      paths: 
+      - path: /
+      #  pathType: ''
+      #  serviceName: ''
+      #  servicePort: ''
+  # Additional labels for this Ingress
+  additionalLabels:
+
+  # Add annotations to this Ingress
+  annotations:
+    # kubernetes.io/ingress.class: external-ingress
+    # ingress.kubernetes.io/rewrite-target: /
+    # ingress.kubernetes.io/force-ssl-redirect: true
+
+  # TLS details for this Ingress
+  tls:
+    # Secrets must be manually created in the namespace.
+    # - secretName: chart-example-tls
+    #   hosts:
+    #     - chart-example.local
+
+
+
+##########################################################
+# Additional ConfigMaps
+##########################################################
+configMap:
+  enabled: false
+  additionalLabels: 
+    # key: value
+  annotations: 
+    # key: value
+  files:
+    # nameSuffix of configMap
+  #  code-config:
+  #     key1: value1
+  #     key2: value2
+  #  dev-config:
+  #     key1: value1
+  #     key2: value2
+
+
+##########################################################
+# Additional Secrets
+##########################################################
+secret:
+  enabled: true
+  additionalLabels: 
+    # DB_URL : "host=otto.db.elephantsql.com user=ydkbuxjn password=nP-vBkmzWlbai4fUQyu4Ouc1gjUu8orz dbname=ydkbuxjn port=5432"
+  annotations: 
+    # DB_URL : "host=otto.db.elephantsql.com user=ydkbuxjn password=nP-vBkmzWlbai4fUQyu4Ouc1gjUu8orz dbname=ydkbuxjn port=5432"
+  files:
+#  nameSuffix of Secret
+  # credentials:
+  #   data:
+  #     secretKey1: secretValue1
+  #     secretKey2: secretValue2
+  # password:
+    postgres:
+      DB_URL : "host=HOST user=USER password=PASSWORD dbname=DBNAME port=5432"
+      PORT : '80'
+
+
+
+
+    

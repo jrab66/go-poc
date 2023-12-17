@@ -1,0 +1,83 @@
+# This workflow will build a golang project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
+
+name: Go
+
+on:
+  push:
+    branches: [ "main" ]
+    paths-ignore:
+      - 'iac/**'
+  pull_request:
+    branches: [ "main" ]
+    paths-ignore:
+      - 'iac/**'
+    
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.20'
+
+    - name: setup mod 
+      run: go mod download
+
+    - name: Build
+      run: go build -o main .
+
+    # - name: Test
+    #   run: go test -v ./...
+
+# docker push GCP 
+    # - id: 'auth'
+    #   uses: 'google-github-actions/auth@v2'
+    #   env:
+    #     credentials_json: ${{ secrets.GOOGLE_CREDENTIALS }}
+    #   with:
+    #     credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
+    - name: "Auth to GCP exist env"
+      uses: google-github-actions/auth@v1
+      with:
+        credentials_json: ${{ secrets.GOOGLE_CREDENTIALS }}
+    - name: 'Set up Cloud SDK'
+      uses: 'google-github-actions/setup-gcloud@v2'
+
+    - name: 'Use gcloud CLI'
+      run: 'gcloud info'
+
+    - name: Build and push Docker image to Artifact registry
+      run: |
+        gcloud auth configure-docker us-central1-docker.pkg.dev
+        gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
+        docker build -t us-central1-docker.pkg.dev/deel-demo-408323/go-poc/go-poc .
+        docker push us-central1-docker.pkg.dev/deel-demo-408323/go-poc/go-poc
+
+
+# deploy steps
+
+    - name: Install Helm
+      run: |
+        curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
+        chmod +x get_helm.sh
+        ./get_helm.sh   
+
+    - name: Configure kubectl
+      run: |
+        gcloud components install gke-gcloud-auth-plugin
+        export USE_GKE_GCLOUD_AUTH_PLUGIN=True
+        gcloud container clusters get-credentials deel-demo-408323-gke --region us-central1 --project deel-demo-408323
+
+
+
+    - name: Deploy Helm chart
+      working-directory: helm
+      run: |
+        ls
+        export USE_GKE_GCLOUD_AUTH_PLUGIN=True
+        helm upgrade --install go-poc . -f values.go-poc.yaml  --set secret.files.postgres.DB_URL=${{ secrets.DB_URL }}
