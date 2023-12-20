@@ -24,3 +24,6 @@ resource "google_compute_subnetwork" "subnet" {
   #   ip_cidr_range = "192.168.64.0/22"
   # }
 }
+
+
+# delete tf
