@@ -106,8 +106,8 @@ jobs:
         GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
          
     - name: Terraform destroy Poc
-        if: github.ref == 'refs/heads/main' 
-        # && github.event_name == 'push'
-        run: terraform destroy -auto-approve -input=false
-        env:
-          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+      if: github.ref == 'refs/heads/main' 
+      # && github.event_name == 'push'
+      run: terraform destroy -auto-approve -input=false
+      env:
+        GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
