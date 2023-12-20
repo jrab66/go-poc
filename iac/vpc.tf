@@ -26,4 +26,4 @@ resource "google_compute_subnetwork" "subnet" {
 }
 
 
-# delete tf 2
+# delete tf 3
